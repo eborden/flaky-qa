@@ -29,7 +29,7 @@ library:
   - mtl
   - scotty
   - sqlite-simple
-  - text
+  - raw-strings-qq
 
 executables:
   flaky-qa-exe:
