@@ -26,10 +26,11 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - bytestring
   - mtl
-  - scotty
-  - sqlite-simple
+  - postgresql-simple
   - raw-strings-qq
+  - scotty
 
 executables:
   flaky-qa-exe:

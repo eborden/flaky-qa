@@ -6,8 +6,11 @@ module Lib (main) where
 
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
-import Database.SQLite.Simple (Connection, Query, close, execute_, open)
-import Database.SQLite.Simple.FromRow ()
+import Data.ByteString (ByteString)
+import Data.ByteString.Char8 (pack)
+import Data.Functor (void)
+import Database.PostgreSQL.Simple (Connection, Query, close, connectPostgreSQL, execute_)
+import Database.PostgreSQL.Simple.FromRow ()
 import System.Environment (getEnv)
 import Text.RawString.QQ (r)
 import Web.Scotty (get, html, redirect, scotty)
@@ -15,21 +18,22 @@ import Web.Scotty (get, html, redirect, scotty)
 main :: IO ()
 main = do
   port <- read <$> getEnv "PORT"
-  executeWithConn_ "CREATE TABLE IF NOT EXISTS flaky_event (created_at DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL)"
+  connStr <- pack <$> getEnv "DATABASE_URL"
+  executeWithConn_ connStr "CREATE TABLE IF NOT EXISTS flaky_event (created_at timestamp with time zone DEFAULT now() NOT NULL)"
 
   scotty port $ do
     get "/" $ body False
     get "/thanks" $ body True
     get "/qa-was-flaky" $ do
-      liftIO $ executeWithConn_ "INSERT INTO flaky_event VALUES (CURRENT_TIMESTAMP)"
+      liftIO $ executeWithConn_ connStr "INSERT INTO flaky_event VALUES (now())"
       redirect "/thanks"
 
 
-executeWithConn_ :: Query -> IO ()
-executeWithConn_ query = do
-  conn <- open "flaky_qa_stats.db"
+executeWithConn_ :: ByteString -> Query -> IO ()
+executeWithConn_ connStr query = do
+  conn <- connectPostgreSQL connStr
   execute_ conn query
-  close conn
+  void $ close conn
 
 body isThanks =
   html $ [r|
