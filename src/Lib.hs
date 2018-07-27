@@ -4,6 +4,7 @@
 
 module Lib (main) where
 
+import Control.Exception (bracket)
 import Control.Monad (when)
 import Control.Monad.IO.Class (liftIO)
 import Data.ByteString (ByteString)
@@ -30,10 +31,11 @@ main = do
 
 
 executeWithConn_ :: ByteString -> Query -> IO ()
-executeWithConn_ connStr query = do
-  conn <- connectPostgreSQL connStr
-  execute_ conn query
-  void $ close conn
+executeWithConn_ connStr query =
+  void $ bracket
+    (connectPostgreSQL connStr)
+    close
+    (`execute_` query)
 
 body isThanks =
   html $ [r|
