@@ -75,7 +75,7 @@ body isThanks =
       else ""
     ) <>
     [r|
-      <a href="/qa-was-flaky">QA was Flaky</a>
+      <a href="/qa-was-flaky" title="Click me to report">QA was Flaky</a>
     </body>
     </html>
   |]
